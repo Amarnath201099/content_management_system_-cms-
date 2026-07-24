@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import PageBuilder from "../../../components/admin/page-builder/PageBuilder";
 import { fetchDocuments } from "../../../store/slices/contentSlice";
 import api from "../../../utils/api";
-import { FiRefreshCw, FiAlertCircle } from "react-icons/fi";
+import { FiRefreshCw, FiAlertCircle, FiShield } from "react-icons/fi";
 
 const EditPage = () => {
   const router = useRouter();
@@ -34,12 +34,44 @@ const EditPage = () => {
   }, [isAuthenticated, user, authLoading, router, dispatch]);
 
   useEffect(() => {
-    if (!id || authLoading || !isAuthenticated) return;
+    if (!id || authLoading || !isAuthenticated || !user) return;
     setLoadingDoc(true);
+
     api
       .get(`/content/${id}`)
       .then((res) => {
-        setInitialData(res.data.data);
+        const doc = res.data.data;
+
+        /**
+         * CRITICAL FIX: RBAC Permission Guard
+         * If the user is an Editor (not an Admin), strictly verify that their ID
+         * matches either the original author or someone in the assignedEditors array!
+         */
+        if (user.role === "editor") {
+          const userId = user.id || user._id;
+
+          // Check author match
+          const authorId =
+            typeof doc.author === "object" ? doc.author?._id : doc.author;
+          const isAuthor = authorId?.toString() === userId?.toString();
+
+          // Check assigned editors match
+          const isAssigned = (doc.assignedEditors || []).some((ed) => {
+            const edId = typeof ed === "object" ? ed?._id : ed;
+            return edId?.toString() === userId?.toString();
+          });
+
+          // Block access if neither condition is met
+          if (!isAuthor && !isAssigned) {
+            setError(
+              "Access Denied: You have not been assigned authoring permissions for this document.",
+            );
+            setInitialData(null);
+            return;
+          }
+        }
+
+        setInitialData(doc);
         setError(null);
       })
       .catch((err) => {
@@ -50,7 +82,7 @@ const EditPage = () => {
       .finally(() => {
         setLoadingDoc(false);
       });
-  }, [id, authLoading, isAuthenticated]);
+  }, [id, authLoading, isAuthenticated, user]);
 
   if (authLoading || !isAuthenticated || !user) {
     return (
@@ -76,16 +108,30 @@ const EditPage = () => {
 
   if (error || !initialData) {
     return (
-      <div className="min-h-screen bg-[#f5f5f5] flex flex-col items-center justify-center p-4 font-sans">
-        <div className="bg-white p-8 rounded-2xl border border-red-200 max-w-md w-full text-center space-y-4 shadow-lg">
-          <FiAlertCircle className="w-10 h-10 text-[#bf2131] mx-auto" />
-          <h3 className="font-extrabold text-lg text-[#2b2c2c]">
-            Failed to Load Document
-          </h3>
-          <p className="text-xs text-[#5c5c5c]">{error}</p>
+      <div className="min-h-screen bg-[#f5f5f5] flex flex-col items-center justify-center p-4 font-sans select-none animate-in zoom-in-95 duration-200">
+        <div className="bg-white p-8 sm:p-10 rounded-3xl border border-red-200 max-w-md w-full text-center space-y-5 shadow-xl">
+          <div className="w-14 h-14 rounded-2xl bg-red-100 text-[#bf2131] flex items-center justify-center mx-auto shadow-inner">
+            {error.includes("Access Denied") ? (
+              <FiShield className="w-7 h-7" />
+            ) : (
+              <FiAlertCircle className="w-7 h-7" />
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <h3 className="font-extrabold text-xl text-[#2b2c2c]">
+              {error.includes("Access Denied")
+                ? "Unauthorized Workspace"
+                : "Failed to Load Document"}
+            </h3>
+            <p className="text-xs text-[#5c5c5c] leading-relaxed max-w-sm mx-auto">
+              {error}
+            </p>
+          </div>
+
           <button
             onClick={() => router.push("/admin/dashboard")}
-            className="w-full py-2.5 bg-[#383939] text-white rounded-lg text-xs font-bold uppercase tracking-wider"
+            className="w-full py-3 bg-[#383939] hover:bg-black text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md transition-all transform hover:-translate-y-0.5"
           >
             Return to Dashboard
           </button>
