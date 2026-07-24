@@ -41,10 +41,10 @@ Instead of creating physical `.js` files for every new webpage, the frontend dyn
 The live deployed environments are accessible via the following links:
 
 - 🌍 **Public Frontend (Next.js on Vercel)**  
-  → [Insert Vercel Link Here]
+  → [Link](https://content-management-system-cms-3gcs.vercel.app)
 
 - ⚙️ **Admin Backend API (Express on Render)**  
-  → [Insert Render API Link Here]
+  → [Link](https://content-management-system-cms-x0xm.onrender.com/api/health)
 
 ---
 
@@ -52,10 +52,10 @@ The live deployed environments are accessible via the following links:
 
 The database seeding script automatically provisions two distinct **Role-Based Access Control (RBAC)** accounts for testing permission boundaries.
 
-| 👥 Role             | 📧 Email Address  | 🔑 Password   | 🛡️ Permissions & Scope                                                                                                              |
-| :------------------ | :---------------- | :------------ | :---------------------------------------------------------------------------------------------------------------------------------- |
-| **🧑‍💼 System Admin** | `admin@test.com`  | `password123` | Full access: Create/delete pages, publish directly to live production, reorder navbar hierarchy, and provision new editor accounts. |
-| **✍️ Lead Editor**  | `editor@test.com` | `password123` | Scoped access: Can only author and modify documents explicitly assigned by an Admin. Cannot publish directly to production.         |
+| 👥 Role             | 📧 Email Address  | 🔑 Password  | 🛡️ Permissions & Scope                                                                                                              |
+| :------------------ | :---------------- | :----------- | :---------------------------------------------------------------------------------------------------------------------------------- |
+| **🧑‍💼 System Admin** | `admin@test.com`  | `Admin@123`  | Full access: Create/delete pages, publish directly to live production, reorder navbar hierarchy, and provision new editor accounts. |
+| **✍️ Lead Editor**  | `editor@test.com` | `Editor@123` | Scoped access: Can only author and modify documents explicitly assigned by an Admin. Cannot publish directly to production.         |
 
 > **💡 Tip:** Use these accounts to verify Role-Based Access Control (RBAC) functionality and permission boundaries during testing.
 
