@@ -27,6 +27,8 @@ import {
   FiX,
   FiDatabase,
   FiRefreshCw,
+  FiMenu,
+  FiChevronRight,
 } from "react-icons/fi";
 
 const AdminDashboard = () => {
@@ -45,6 +47,7 @@ const AdminDashboard = () => {
 
   const [activeTab, setActiveTab] = useState("welcome");
   const [statusMessage, setStatusMessage] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   /**
    * CRITICAL FIX: Auth Hydration Guard
@@ -65,6 +68,11 @@ const AdminDashboard = () => {
   const handleLogout = async () => {
     await dispatch(logoutUser());
     router.push("/");
+  };
+
+  const handleTabSwitch = (tabName) => {
+    setActiveTab(tabName);
+    setIsMobileMenuOpen(false);
   };
 
   const totalPages = useMemo(() => documents?.length || 0, [documents]);
@@ -99,23 +107,24 @@ const AdminDashboard = () => {
       {/* Top Bar */}
       <header className="bg-[#383939] text-white shadow-md sticky top-0 z-50 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="w-9 h-9 rounded-lg bg-[#bf2131] flex items-center justify-center shadow-md">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="w-9 h-9 rounded-lg bg-[#bf2131] flex items-center justify-center shadow-md shrink-0">
               <FiShield className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="font-bold text-lg tracking-tight text-white">
+              <span className="font-bold text-base sm:text-lg tracking-tight text-white block">
                 CMS Mission Control
               </span>
-              <span className="hidden sm:inline-block ml-3 text-xs bg-[#2b2c2c] border border-white/20 px-2.5 py-0.5 rounded text-white/80 uppercase tracking-wider font-semibold">
+              <span className="inline-block text-[10px] sm:text-xs bg-[#2b2c2c] border border-white/20 px-2 py-0.5 rounded text-white/80 uppercase tracking-wider font-semibold">
                 {user.name} • {user.role}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          {/* Desktop Top Bar Controls (Hidden below md breakpoint) */}
+          <div className="hidden md:flex items-center space-x-3">
             <button
-              onClick={() => setActiveTab("welcome")}
+              onClick={() => handleTabSwitch("welcome")}
               className={`flex items-center space-x-1.5 text-xs font-bold px-3.5 py-2 rounded-lg transition-all border ${
                 activeTab === "welcome"
                   ? "bg-[#bf2131] text-white border-[#bf2131] shadow-md"
@@ -123,7 +132,7 @@ const AdminDashboard = () => {
               }`}
             >
               <FiHome className="w-4 h-4" />
-              <span className="hidden md:inline">Welcome Hub</span>
+              <span>Welcome Hub</span>
             </button>
 
             <Link
@@ -132,7 +141,7 @@ const AdminDashboard = () => {
               className="flex items-center space-x-1.5 text-xs font-semibold bg-[#2b2c2c] hover:bg-white/10 text-white px-3.5 py-2 rounded-lg transition-colors border border-white/20"
             >
               <FiBookOpen className="w-4 h-4 text-[#bf2131]" />
-              <span className="hidden md:inline">Public Site</span>
+              <span>Public Site</span>
             </Link>
 
             <button
@@ -143,62 +152,211 @@ const AdminDashboard = () => {
               <span>Logout</span>
             </button>
           </div>
-        </div>
-      </header>
 
-      {/* Tab Navigation */}
-      <nav className="bg-white border-b border-[#383939]/15 shadow-sm sticky top-16 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between overflow-x-auto py-2">
-          <div className="flex items-center space-x-2">
+          {/* Mobile & Tablet Hamburger Toggle Button */}
+          <div className="flex md:hidden">
             <button
-              onClick={() => setActiveTab("welcome")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all shrink-0 ${activeTab === "welcome" ? "bg-[#2b2c2c] text-white shadow-sm" : "bg-[#f5f5f5] text-[#2b2c2c] hover:bg-[#383939]/10"}`}
+              type="button"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-expanded={isMobileMenuOpen}
+              aria-label="Toggle admin menu"
+              className="p-2 rounded-lg bg-[#2b2c2c] text-white hover:bg-[#bf2131] transition-colors focus:outline-none focus:ring-2 focus:ring-[#bf2131]"
             >
-              <FiHome className="w-3.5 h-3.5 text-[#bf2131]" />
-              <span>Overview</span>
+              {isMobileMenuOpen ? (
+                <FiX className="w-6 h-6" />
+              ) : (
+                <FiMenu className="w-6 h-6" />
+              )}
             </button>
+          </div>
+        </div>
+
+        {/* Mobile & Tablet Drawer Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-[#2b2c2c] border-t border-white/10 px-4 pt-3 pb-6 space-y-2 animate-in slide-in-from-top-2 duration-200 shadow-xl">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-white/40 px-2 py-1">
+              Admin Workspace
+            </div>
+
             <button
-              onClick={() => setActiveTab("pages")}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all shrink-0 ${activeTab === "pages" ? "bg-[#2b2c2c] text-white shadow-sm" : "bg-[#f5f5f5] text-[#2b2c2c] hover:bg-[#383939]/10"}`}
+              onClick={() => handleTabSwitch("welcome")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+                activeTab === "welcome"
+                  ? "bg-[#bf2131] text-white"
+                  : "text-white/80 hover:text-white hover:bg-white/10"
+              }`}
             >
-              <FiFileText className="w-3.5 h-3.5 text-[#bf2131]" />
-              <span>Page Management</span>
+              <div className="flex items-center space-x-2.5">
+                <FiHome className="w-4 h-4 text-[#bf2131]" />
+                <span>Welcome Hub (Overview)</span>
+              </div>
+              <FiChevronRight className="w-4 h-4 opacity-60" />
             </button>
+
+            <button
+              onClick={() => handleTabSwitch("pages")}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+                activeTab === "pages"
+                  ? "bg-[#bf2131] text-white"
+                  : "text-white/80 hover:text-white hover:bg-white/10"
+              }`}
+            >
+              <div className="flex items-center space-x-2.5">
+                <FiFileText className="w-4 h-4 text-[#bf2131]" />
+                <span>Page Management</span>
+              </div>
+              <FiChevronRight className="w-4 h-4 opacity-60" />
+            </button>
+
             {user.role === "admin" && (
               <>
                 <button
-                  onClick={() => setActiveTab("navigation")}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all shrink-0 ${activeTab === "navigation" ? "bg-[#2b2c2c] text-white shadow-sm" : "bg-[#f5f5f5] text-[#2b2c2c] hover:bg-[#383939]/10"}`}
+                  onClick={() => handleTabSwitch("navigation")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+                    activeTab === "navigation"
+                      ? "bg-[#bf2131] text-white"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
+                  }`}
                 >
-                  <FiLayers className="w-3.5 h-3.5 text-[#bf2131]" />
-                  <span>Navigation Order</span>
+                  <div className="flex items-center space-x-2.5">
+                    <FiLayers className="w-4 h-4 text-[#bf2131]" />
+                    <span>Navigation Order</span>
+                  </div>
+                  <FiChevronRight className="w-4 h-4 opacity-60" />
                 </button>
+
                 <button
-                  onClick={() => setActiveTab("team")}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all shrink-0 ${activeTab === "team" ? "bg-[#2b2c2c] text-white shadow-sm" : "bg-[#f5f5f5] text-[#2b2c2c] hover:bg-[#383939]/10"}`}
+                  onClick={() => handleTabSwitch("team")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+                    activeTab === "team"
+                      ? "bg-[#bf2131] text-white"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
+                  }`}
                 >
-                  <FiUsers className="w-3.5 h-3.5 text-[#bf2131]" />
-                  <span>Team Management</span>
+                  <div className="flex items-center space-x-2.5">
+                    <FiUsers className="w-4 h-4 text-[#bf2131]" />
+                    <span>Team Management</span>
+                  </div>
+                  <FiChevronRight className="w-4 h-4 opacity-60" />
                 </button>
               </>
             )}
-          </div>
 
-          <Link
-            href="/admin/editor/new"
-            className="flex items-center space-x-2 px-4 py-2 bg-[#bf2131] hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow transition-all transform hover:-translate-y-0.5 shrink-0 ml-4"
-          >
-            <FiPlus className="w-4 h-4" />
-            <span>Create New Page</span>
-          </Link>
-        </div>
-      </nav>
+            <div className="pt-2 border-t border-white/10 space-y-2">
+              <Link
+                href="/admin/editor/new"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full flex items-center justify-center space-x-2 py-2.5 px-4 bg-[#bf2131] hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow transition-all"
+              >
+                <FiPlus className="w-4 h-4" />
+                <span>+ Create New Page</span>
+              </Link>
+
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <Link
+                  href="/"
+                  target="_blank"
+                  className="flex items-center justify-center space-x-1.5 text-xs font-semibold bg-[#383939] hover:bg-white/10 text-white py-2.5 px-3 rounded-lg transition-colors border border-white/10"
+                >
+                  <FiBookOpen className="w-3.5 h-3.5 text-[#bf2131]" />
+                  <span>Public Site</span>
+                </Link>
+
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center justify-center space-x-1.5 text-xs font-semibold bg-[#383939] hover:bg-red-700 text-white py-2.5 px-3 rounded-lg transition-colors border border-white/10"
+                >
+                  <FiLogOut className="w-3.5 h-3.5 text-[#bf2131]" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* Tab Navigation (Hidden when on Welcome Hub for clean Executive Home UI) */}
+      {activeTab !== "welcome" && (
+        <nav className="bg-white border-b border-[#383939]/15 shadow-sm sticky top-16 z-40 animate-in fade-in duration-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-2.5">
+            {/* Scrollable Tabs Container */}
+            <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0 w-full sm:w-auto">
+              <button
+                onClick={() => setActiveTab("welcome")}
+                className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all shrink-0 ${
+                  activeTab === "welcome"
+                    ? "bg-[#2b2c2c] text-white shadow-sm"
+                    : "bg-[#f5f5f5] text-[#2b2c2c] hover:bg-[#383939]/10"
+                }`}
+              >
+                <FiHome className="w-3.5 h-3.5 text-[#bf2131]" />
+                <span>Overview</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab("pages")}
+                className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all shrink-0 ${
+                  activeTab === "pages"
+                    ? "bg-[#2b2c2c] text-white shadow-sm"
+                    : "bg-[#f5f5f5] text-[#2b2c2c] hover:bg-[#383939]/10"
+                }`}
+              >
+                <FiFileText className="w-3.5 h-3.5 text-[#bf2131]" />
+                <span>Page Management</span>
+              </button>
+
+              {user.role === "admin" && (
+                <>
+                  <button
+                    onClick={() => setActiveTab("navigation")}
+                    className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all shrink-0 ${
+                      activeTab === "navigation"
+                        ? "bg-[#2b2c2c] text-white shadow-sm"
+                        : "bg-[#f5f5f5] text-[#2b2c2c] hover:bg-[#383939]/10"
+                    }`}
+                  >
+                    <FiLayers className="w-3.5 h-3.5 text-[#bf2131]" />
+                    <span>Navigation Order</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab("team")}
+                    className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg font-bold text-xs uppercase tracking-wider transition-all shrink-0 ${
+                      activeTab === "team"
+                        ? "bg-[#2b2c2c] text-white shadow-sm"
+                        : "bg-[#f5f5f5] text-[#2b2c2c] hover:bg-[#383939]/10"
+                    }`}
+                  >
+                    <FiUsers className="w-3.5 h-3.5 text-[#bf2131]" />
+                    <span>Team Management</span>
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Create New Page Action Button - Stacks cleanly without overlapping tabs */}
+            <div className="shrink-0 self-end sm:self-auto">
+              <Link
+                href="/admin/editor/new"
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-[#bf2131] hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow transition-all transform hover:-translate-y-0.5"
+              >
+                <FiPlus className="w-4 h-4" />
+                <span>+ Create New Page</span>
+              </Link>
+            </div>
+          </div>
+        </nav>
+      )}
 
       {/* Main Workspace Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {statusMessage && (
           <div
-            className={`p-4 rounded-xl border flex items-center justify-between text-sm shadow-sm transition-all ${statusMessage.type === "success" ? "bg-green-50 border-green-300 text-green-900" : "bg-red-50 border-red-300 text-red-900"}`}
+            className={`p-4 rounded-xl border flex items-center justify-between text-sm shadow-sm transition-all ${
+              statusMessage.type === "success"
+                ? "bg-green-50 border-green-300 text-green-900"
+                : "bg-red-50 border-red-300 text-red-900"
+            }`}
           >
             <div className="flex items-center space-x-2.5">
               {statusMessage.type === "success" ? (
@@ -366,7 +524,7 @@ const AdminDashboard = () => {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div
-                  onClick={() => setActiveTab("pages")}
+                  onClick={() => handleTabSwitch("pages")}
                   className="bg-[#2b2c2c] text-white p-6 rounded-2xl border border-white/10 shadow-lg hover:-translate-y-1.5 hover:shadow-2xl hover:border-[#bf2131]/50 transition-all duration-300 cursor-pointer group flex flex-col justify-between"
                 >
                   <div className="space-y-3">
@@ -389,7 +547,7 @@ const AdminDashboard = () => {
 
                 {user.role === "admin" ? (
                   <div
-                    onClick={() => setActiveTab("navigation")}
+                    onClick={() => handleTabSwitch("navigation")}
                     className="bg-[#2b2c2c] text-white p-6 rounded-2xl border border-white/10 shadow-lg hover:-translate-y-1.5 hover:shadow-2xl hover:border-[#bf2131]/50 transition-all duration-300 cursor-pointer group flex flex-col justify-between"
                   >
                     <div className="space-y-3">
@@ -431,7 +589,7 @@ const AdminDashboard = () => {
 
                 {user.role === "admin" ? (
                   <div
-                    onClick={() => setActiveTab("team")}
+                    onClick={() => handleTabSwitch("team")}
                     className="bg-[#2b2c2c] text-white p-6 rounded-2xl border border-white/10 shadow-lg hover:-translate-y-1.5 hover:shadow-2xl hover:border-[#bf2131]/50 transition-all duration-300 cursor-pointer group flex flex-col justify-between"
                   >
                     <div className="space-y-3">

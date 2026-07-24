@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { fetchNavigation } from "../../store/slices/contentSlice";
 import api from "../../utils/api";
+import { useToast } from "../../context/UIContext";
 import {
   FiMove,
   FiSave,
@@ -10,8 +11,10 @@ import {
   FiLayers,
 } from "react-icons/fi";
 
-const NavSorter = ({ setStatusMessage }) => {
+const NavSorter = () => {
   const dispatch = useDispatch();
+  const showToast = useToast();
+
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -37,6 +40,7 @@ const NavSorter = ({ setStatusMessage }) => {
       setItems(roots);
     } catch (err) {
       console.error("Failed to load top-level navigation pages:", err);
+      showToast("Failed to load top-level navigation pages", "error");
     } finally {
       setLoading(false);
     }
@@ -100,7 +104,6 @@ const NavSorter = ({ setStatusMessage }) => {
   // Dispatch new index sequence to backend bulk reorder API
   const handleSaveOrder = async () => {
     setSaving(true);
-    setStatusMessage(null);
 
     const payload = items.map((doc, idx) => ({
       _id: doc._id,
@@ -110,19 +113,17 @@ const NavSorter = ({ setStatusMessage }) => {
     try {
       await api.put("/content/navigation/reorder", { items: payload });
       await dispatch(fetchNavigation()); // Refresh global navbar state immediately
-      setStatusMessage({
-        type: "success",
-        text: "Top-level navigation hierarchy sequence saved successfully!",
-      });
+      showToast(
+        "Top-level navigation hierarchy sequence saved successfully!",
+        "success",
+      );
       fetchTopLevelPages();
     } catch (err) {
-      setStatusMessage({
-        type: "error",
-        text:
-          err.response?.data?.message ||
-          err.message ||
-          "Error saving navigation order.",
-      });
+      const errorMsg =
+        err.response?.data?.message ||
+        err.message ||
+        "Error saving navigation order.";
+      showToast(errorMsg, "error");
     } finally {
       setSaving(false);
     }
