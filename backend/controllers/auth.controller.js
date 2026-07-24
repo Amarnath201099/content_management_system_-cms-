@@ -119,17 +119,22 @@ const loginUser = async (req, res, next) => {
 // @route   POST /api/v1/auth/logout
 // @access  Public
 const logoutUser = (req, res) => {
-  res.cookie("jwt", "", {
-    httpOnly: true,
-    expires: new Date(0),
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-  });
+  try {
+    // CRITICAL: Must match the exact secure and sameSite flags used when generating the token!
+    const cookieOptions = {
+      expires: new Date(0), // Set expiration to the Unix epoch (Jan 1, 1970) to force browser deletion
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production" ? true : false,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    };
 
-  res.status(200).json({
-    success: true,
-    message: "Logged out successfully",
-  });
+    res.status(200).cookie("jwt", "", cookieOptions).json({
+      success: true,
+      message: "Logged out successfully and session cookie cleared",
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // @desc    Get current logged in user session
